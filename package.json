@@ -2,14 +2,14 @@
   "name": "slacksl",
   "version": "0.0.1",
   "description": "realtime sl info directly in slack",
-  "main": "index.js",
+  "main": "app/index.js",
   "dependencies": {
     "httpdispatcher": "^1.0.0",
     "dotenv": "^2.0.0"
   },
   "devDependencies": {},
   "scripts": {
-    "start": "index.js",
+    "start": "app/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
