@@ -74,14 +74,17 @@ dispatcher.onGet("/realtime", function(req, res) {
     })
 }); 
 
-//Create a server
-const PORT=80 ;
-var server = http.createServer(handleRequest);
+const HTTPS_PORT=443;
+var httpserver = http.createServer(handleRequest);
+var httpsserver = http.createServer(handleRequest);
 
 //Lets start our server
-server.listen(PORT, function(){
-    //Callback triggered when server is successfully listening. Hurray!
-    // console.log("Server listening on: http://localhost:%s", PORT);
+httpserver.listen(process.env.HTTP_PORT, function(){
+    console.log("Server listening on: http://localhost:%s", process.env.HTTP_PORT);
+});
+
+httpsserver.listen(HTTPS_PORT, function(){
+    console.log("Server listening on: https://localhost:%s", HTTPS_PORT);
 });
 
 function stationSearch(searchstring) {
