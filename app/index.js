@@ -25,7 +25,7 @@ dispatcher.onPost("/realtime", function(req, res) {
     var form = querystring.parse(req.body);
     res.writeHead(200, {"Content-Type": "application/json; charset=utf-8"});
     
-    var jsonResponse = { text: "POST: Hittade inte några avgångar."};
+    var jsonResponse = { text: "Du skrev: " + form.text};
     res.end(JSON.stringify(jsonResponse));  
     // if(!queryObj || !queryObj.station || queryObj.station === '') {
     //     res.end(JSON.stringify(jsonResponse));
