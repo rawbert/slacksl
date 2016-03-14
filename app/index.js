@@ -74,13 +74,12 @@ dispatcher.onGet("/realtime", function(req, res) {
     })
 }); 
 
-const HTTPS_PORT=443;
 var httpserver = http.createServer(handleRequest);
 var httpsserver = http.createServer(handleRequest);
-
+var port = process.env.PORT || 8080;
 //Lets start our server
-httpserver.listen(process.env.HTTP_PORT, function(){
-    console.log("Server listening on: http://localhost:%s", process.env.HTTP_PORT);
+httpserver.listen(port, function(){
+    console.log("Server listening on: http://localhost:%s", port);
 });
 
 // httpsserver.listen(HTTPS_PORT, function(){
