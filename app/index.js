@@ -75,7 +75,7 @@ dispatcher.onGet("/realtime", function(req, res) {
 }); 
 
 //Create a server
-const PORT=8080 ;
+const PORT=80 ;
 var server = http.createServer(handleRequest);
 
 //Lets start our server
