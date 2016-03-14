@@ -83,9 +83,9 @@ httpserver.listen(process.env.HTTP_PORT, function(){
     console.log("Server listening on: http://localhost:%s", process.env.HTTP_PORT);
 });
 
-httpsserver.listen(HTTPS_PORT, function(){
-    console.log("Server listening on: https://localhost:%s", HTTPS_PORT);
-});
+// httpsserver.listen(HTTPS_PORT, function(){
+//     console.log("Server listening on: https://localhost:%s", HTTPS_PORT);
+// });
 
 function stationSearch(searchstring) {
     sl.stationSearch('searchstring', function showStationResponse (data) {
