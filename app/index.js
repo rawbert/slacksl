@@ -7,7 +7,6 @@ var sl = require('./lib/sl');
 
 function handleRequest(request, response){
     try {
-        //log the request on console
         console.log(request.url);
         dispatcher.dispatch(request, response);
     } catch(err) {
@@ -26,57 +25,66 @@ dispatcher.onPost("/realtime", function(req, res) {
     res.writeHead(200, {"Content-Type": "application/json; charset=utf-8"});
     
     var jsonResponse = { text: "Du skrev: " + form.text};
-    res.end(JSON.stringify(jsonResponse));  
-    // if(!queryObj || !queryObj.station || queryObj.station === '') {
-    //     res.end(JSON.stringify(jsonResponse));
-    //     return;
-    // }
+    var trafficRequest = parseSlackText(form.text);
+    console.log(trafficRequest);
     
-    // sl.stationSearch(queryObj.station, function parseStationSearch(data) {
-    //     var stationResponse = JSON.parse(data);        
-    //     if(!stationResponse) {
-    //         res.end(JSON.stringify(jsonResponse));
-    //         return;
-    //     }
-        
-    //     if(stationResponse.StatusCode !== 0) {
-    //         jsonResponse.text = stationResponse.Message;
-    //         res.end(JSON.stringify(jsonResponse));
-    //         return;
-    //     }
-        
-    //     if(stationResponse.ResponseData !== null && stationResponse.ResponseData.length > 0) {
-    //         var first = stationResponse.ResponseData[0];
-    //         jsonResponse.text = first.Name + " - " + first.SiteId;
-            
-    //         sl.realtime(first.SiteId, function parseRealtime(data) {
-    //             var realtimeResponse = JSON.parse(data);
-    //             if(!realtimeResponse) {
-    //                 jsonResponse.text = 'Kunde inte läsa realtidsinformation';
-    //                 res.end(JSON.stringify(jsonResponse));
-    //             }
-                
-    //             if(realtimeResponse.StatusCode !== 0) {
-    //                 jsonResponse.text = realtimeResponse.Message;
-    //                 res.end(JSON.stringify(jsonResponse));
-    //             }
-                
-    //             var trainText = "";                
-                
-    //             realtimeResponse.ResponseData.Trains.forEach(function(element) {
-    //                 trainText+= "\n"+element.Destination + ": " + element.DisplayTime;
-    //             }, this);
-                
-    //             jsonResponse.text = trainText;
-    //             res.end(JSON.stringify(jsonResponse));
-    //         })
+    sl.stationSearch(trafficRequest.station, function(stationResponse) {
+        if(!stationResponse.success) {
+            jsonResponse.text = stationResponse.message;
+            res.end(JSON.stringify(jsonResponse));    
+            return;
+        }
+        sl.realtime(stationResponse.stationId, function(realtimeResponse) {
+            if(!realtimeResponse.success) {
+                jsonResponse.text = realtimeResponse.message;
+                res.end(JSON.stringify(jsonResponse));      
+            }
+            var responseText = "Visar realtidsinformation för " + stationResponse.station;
+            var realtime = filterRealtimeForTrafficType(trafficRequest.trafficType, realtimeResponse);
+            realtime.forEach(function(element) {
+                responseText += "\n" + element.destination + ": " + element.displayTime;
+            }, this);
+            jsonResponse.text = responseText;
+            res.end(JSON.stringify(jsonResponse));          
+        })
+    })
+});
 
-    //     } else {
-    //         jsonResponse.text = 'Kunde inte hitta några stationer som innehåller namnet ' + queryObj.station;
-    //         res.end(JSON.stringify(jsonResponse));
-    //     }
-    // })
-}); 
+function filterRealtimeForTrafficType(trafficType, realtimeResponse) {
+    if(trafficType === "pendel" || trafficType === "pendeltåg") {
+        return realtimeResponse.trains;
+    }
+    
+    if(trafficType === "tbana" || trafficType === "tunnelbana" || trafficType === "tuben") {
+        return realtimeResponse.metros;
+    }
+    
+    if(trafficType === "buss" || trafficType === "bussen") {
+        return realTimeResponse.buses;
+    }
+    
+    if(trafficType === "spårvagn" || trafficType === "lokaltrafik") {
+        return realtimeResponse.trams;
+    }
+    
+    return [];
+}
+
+function parseSlackText(text) {
+    var inputs = text.split(" ");
+    var station = "",
+        trafficType = "";
+    if(inputs.length === 1) {
+        station = inputs[0];
+    }
+    
+    if(inputs.length === 2) {
+        station = inputs[0];
+        trafficType = inputs[1];
+    }
+    
+    return { station: station, trafficType: trafficType };
+}
 
 var server = http.createServer(handleRequest);
 var port = process.env.PORT || 8080;

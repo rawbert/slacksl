@@ -24,10 +24,42 @@ sl.stationSearch = function(searchstring, callback) {
             body += chunk;
         });
         res.on('end', function () {
-            callback(body);
+            var formattedResponse = buildStationSearchResponse(body);
+            callback(formattedResponse);
         })
     }).end();
 };
+
+function buildStationSearchResponse(data) {
+    var formattedResponse = {
+        station: "",
+        stationId: 0,
+        message: "",
+        success: false
+    };
+        
+    var stationApiResponse = JSON.parse(data);        
+    if(!stationApiResponse) {
+        formattedResponse.message = "Fel vid sökning av station";
+        return formattedResponse;
+    }
+    
+    if(stationApiResponse.StatusCode !== 0) {
+        formattedResponse.message = stationApiResponse.Message;
+        return formattedResponse;
+    }
+    
+    if(stationApiResponse.ResponseData.length === 0) {
+        formattedResponse.message = "Kunde inte hitta en station som matchar din sökning";
+        return formattedResponse;
+    }
+    
+    var first = stationApiResponse.ResponseData[0];
+    formattedResponse.station = first.Name;
+    formattedResponse.stationId = first.SiteId;
+    formattedResponse.success = true;
+    return formattedResponse;    
+}
 
 /**
  * @description Returns realtime information for a specific station
@@ -51,9 +83,70 @@ sl.realtime = function(siteId, callback) {
             body += chunk;
         });
         res.on('end', function () {
-            callback(body);
+            var formattedResponse = buildRealtimeResponse(body);
+            callback(formattedResponse);
         })
     }).end();
 };
+
+function buildRealtimeResponse(data) {
+    var formattedResponse = {
+        trains: [],
+        metros: [],
+        buses: [],
+        trams: [],
+        message: "",
+        success: false
+    };
+    
+    var realtimeResponse = JSON.parse(data);
+    if(!realtimeResponse) {
+        formattedResponse.message = 'Kunde inte läsa realtidsinformation';
+        return formattedResponse;
+    }
+    
+    if(realtimeResponse.StatusCode !== 0) {
+        formattedResponse.message = realtimeResponse.Message;
+        return formattedResponse;
+    }
+    
+    formattedResponse.success = true;    
+    
+    realtimeResponse.ResponseData.Trains.forEach(function(element) {
+        formattedResponse.trains.push({
+            destination: element.Destination,
+            displayTime: element.DisplayTime
+        });
+    }, this);
+    
+    
+    realtimeResponse.ResponseData.Metros.forEach(function(element) {
+        formattedResponse.metros.push({
+            destination: element.Destination,
+            displayTime: element.DisplayTime,
+            direction: element.Direction
+        });
+    }, this);
+    
+    
+    realtimeResponse.ResponseData.Buses.forEach(function(element) {
+        formattedResponse.buses.push({
+            destination: element.Destination,
+            displayTime: element.DisplayTime,
+            direction: element.Direction
+        });
+    }, this);
+    
+    
+    realtimeResponse.ResponseData.Trams.forEach(function(element) {
+        formattedResponse.trams.push({
+            destination: element.Destination,
+            displayTime: element.DisplayTime,
+            direction: element.Direction
+        });
+    }, this);
+    
+    return formattedResponse;
+}
 
 module.exports = sl;
