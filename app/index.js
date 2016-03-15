@@ -4,6 +4,7 @@ var dispatcher = require('httpdispatcher');
 var querystring = require('querystring');
 
 var sl = require('./lib/sl');
+var slack = require('./lib/slack');
 
 function handleRequest(request, response){
     try {
@@ -22,11 +23,18 @@ dispatcher.onGet('/realtime', function(req, res) {
 
 dispatcher.onPost("/realtime", function(req, res) {
     var form = querystring.parse(req.body);
+    var jsonResponse = { text: ""};
     res.writeHead(200, {"Content-Type": "application/json; charset=utf-8"});
-    
-    var jsonResponse = { text: "Du skrev: " + form.text};
+    if(form.token !== process.env.SLACK_COMMAND_TOKEN) {
+        jsonResponse.text = "Invalid token";
+        res.end(JSON.stringify(jsonResponse));
+    }
     var trafficRequest = parseSlackText(form.text);
-    console.log(trafficRequest);
+    
+    var responseSent = false;
+    var timer = setTimeout(function() {
+        timer = null;
+    }, 2950);
     
     sl.stationSearch(trafficRequest.station, function(stationResponse) {
         if(!stationResponse.success) {
@@ -39,13 +47,20 @@ dispatcher.onPost("/realtime", function(req, res) {
                 jsonResponse.text = realtimeResponse.message;
                 res.end(JSON.stringify(jsonResponse));      
             }
+                       
             var responseText = "Visar realtidsinformation för " + stationResponse.station;
             var realtime = filterRealtimeForTrafficType(trafficRequest.trafficType, realtimeResponse);
             realtime.forEach(function(element) {
                 responseText += "\n" + element.destination + ": " + element.displayTime;
             }, this);
             jsonResponse.text = responseText;
-            res.end(JSON.stringify(jsonResponse));          
+            res.end(JSON.stringify(jsonResponse));
+            
+            if(timer === null) {
+                console.log("Timer is null, send delayed response");
+                // We didnt make it within 3 seconds, post to url
+                slack.postResponse(form.response_url, jsonResponse);
+            }    
         })
     })
 });
