@@ -77,7 +77,7 @@ function filterRealtimeForTrafficType(trafficType, realtimeResponse) {
     }
     
     if(trafficType === "buss" || trafficType === "bussen") {
-        return realTimeResponse.buses;
+        return realtimeResponse.buses;
     }
     
     if(trafficType === "spårvagn" || trafficType === "lokaltrafik") {
