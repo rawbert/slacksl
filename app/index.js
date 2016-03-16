@@ -70,16 +70,13 @@ dispatcher.onPost("/realtime", function(req, res) {
 function filterRealtimeForTrafficType(trafficType, realtimeResponse) {
     if(trafficType === "pendel" || trafficType === "pendeltåg") {
         return realtimeResponse.trains;
-    }
-    
+    }    
     if(trafficType === "tbana" || trafficType === "tunnelbana" || trafficType === "tuben") {
         return realtimeResponse.metros;
-    }
-    
+    }    
     if(trafficType === "buss" || trafficType === "bussen") {
         return realtimeResponse.buses;
-    }
-    
+    }    
     if(trafficType === "spårvagn" || trafficType === "lokaltrafik") {
         return realtimeResponse.trams;
     }
