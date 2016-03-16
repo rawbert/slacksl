@@ -5,7 +5,8 @@
   "main": "node app/index.js",
   "dependencies": {
     "httpdispatcher": "^1.0.0",
-    "dotenv": "^2.0.0"
+    "dotenv": "^2.0.0",
+    "slack-node": "^0.2.0"
   },
   "devDependencies": {},
   "scripts": {
