@@ -33,19 +33,25 @@ dispatcher.onPost("/realtime", function(req, res) {
     
     var responseSent = false;
     var timer = setTimeout(function() {
-        timer = null;
+            if(!responseSent) {
+                res.end();   
+            }
+            timer = null;
     }, 2950);
     
     sl.stationSearch(trafficRequest.station, function(stationResponse) {
         if(!stationResponse.success) {
             jsonResponse.text = stationResponse.message;
-            res.end(JSON.stringify(jsonResponse));    
+            responseSent = true;
+            res.end(JSON.stringify(jsonResponse));
             return;
         }
         sl.realtime(stationResponse.stationId, function(realtimeResponse) {
             if(!realtimeResponse.success) {
                 jsonResponse.text = realtimeResponse.message;
-                res.end(JSON.stringify(jsonResponse));      
+                responseSent = true;
+                res.end(JSON.stringify(jsonResponse));
+                return;
             }
                        
             var responseText = "Visar realtidsinformation för " + stationResponse.station;
@@ -55,16 +61,8 @@ dispatcher.onPost("/realtime", function(req, res) {
             }, this);
             jsonResponse.text = responseText;
             
-            if(timer !== null) {
-                // Within timeframe
-                res.end(JSON.stringify(jsonResponse));
-            } else{
-                // Outside slack 3 second time frame
-                res.end();
-                console.log("Timer is null, send delayed response");
-                // We didnt make it within 3 seconds, post to url
-                slack.send(form.response_url, jsonResponse);
-            }
+            // We didnt make it within 3 seconds, post to url
+            slack.send(form.response_url, jsonResponse);
         })
     })
 });
