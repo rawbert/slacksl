@@ -57,10 +57,15 @@ dispatcher.onPost("/realtime", function(req, res) {
             res.end(JSON.stringify(jsonResponse));
             
             if(timer === null) {
+                res.end();
                 console.log("Timer is null, send delayed response");
                 // We didnt make it within 3 seconds, post to url
-                slack.postResponse(form.response_url, jsonResponse);
-            }    
+                slack.send(form.response_url, jsonResponse);
+            }
+            // } else {
+            //     console.log("Timer isn't null, sending delayed response anyway.")
+            //     slack.send(form.response_url, jsonResponse);
+            // }
         })
     })
 });
